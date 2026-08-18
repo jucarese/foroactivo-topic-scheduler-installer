@@ -1,0 +1,28 @@
+CAMBIOS V114 LIMPIO
+===================
+
+Objetivo
+--------
+Evitar que cada instalacion, actualizacion o mantenimiento deje acumulada una
+carpeta .foroactivo_installer_runtime junto al EXE.
+
+Cambios realizados
+------------------
+1. Se creo una nueva carpeta limpia basada en v113:
+   work\rebuild_clean_v114_from_v113_clean\gestor-publicaciones-v1
+
+2. Se actualizo el lanzador Program_v114.cs para limpiar explicitamente la
+   carpeta runtime creada por su propia ejecucion despues de cerrar la interfaz
+   del instalador.
+
+3. Antes de borrar una runtime, el lanzador busca procesos node, npx, npm, cmd,
+   PowerShell o pwsh cuyo comando este usando esa carpeta y los cierra.
+
+4. Se amplio el numero de reintentos de borrado para dar tiempo a Windows a
+   soltar bloqueos temporales de archivos.
+
+Resultado esperado
+------------------
+La runtime puede aparecer mientras el instalador esta abierto, pero debe
+desaparecer al cerrar el instalador. Si quedo alguna de una ejecucion anterior,
+la siguiente apertura del EXE intentara limpiarla tambien.

@@ -1,0 +1,24 @@
+VERSIÓN 1.0 PARA PRUEBAS
+
+Incluye:
+- programación automática;
+- publicación inmediata;
+- edición;
+- cancelación;
+- pausa y reanudación;
+- limpieza de publicados, cancelados y fallidos;
+- sesión persistente;
+- autenticación Unicode mediante SHA-256;
+- panel adaptable;
+- instalación guiada.
+
+Limitación actual:
+Cloudflare sigue siendo el motor. La instalación guiada evita crear manualmente
+el Worker, D1, bindings, tablas, cron y secretos, pero requiere autorizar una
+cuenta de Cloudflare una vez.
+
+
+ACTUALIZACIÓN:
+- ADMIN_API_KEY queda como nombre definitivo de la clave del panel.
+- Se distingue entre cambiar la cuenta principal y añadir cuentas adicionales.
+- El Worker puede iniciar sesiones independientes con varias cuentas publicadoras.

@@ -1,0 +1,1930 @@
+﻿<!DOCTYPE html>
+<!--
+  Autoría y condiciones de uso:
+  Proyecto de Código Abierto, desarrollado con ChatGPT + la consola de Firefox, con la supervisión total y múltiples pruebas de Jucarese, Administrador de Foroactivo. © 2026
+  Todos los derechos reservados. Queda prohibida la reproducción, distribución, modificación o difusión,
+  total o parcial, sin autorización expresa del autor.
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Gestor de publicaciones</title>
+
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --warning: #d97706;
+      --success: #15803d;
+      --dark: #111827;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.45;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .scheduler-panel {
+      width: min(1400px, calc(100% - 24px));
+      margin: 24px auto;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 34px);
+    }
+
+    .panel-subtitle {
+      margin: 5px 0 0;
+      color: var(--muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .login-card {
+      max-width: 620px;
+      margin: 70px auto;
+      padding: 24px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(170px, 220px) auto auto;
+      gap: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-control {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      outline: 2px solid rgba(37, 99, 235, 0.14);
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 700;
+      transition: 0.2s ease;
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-dark {
+      background: var(--dark);
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: var(--danger-hover);
+    }
+
+    .btn-light {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: #fff;
+    }
+
+    .message {
+      display: none;
+      margin: 0 0 16px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .message.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .message.info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+
+    .table-card {
+      overflow: hidden;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      padding: 14px 16px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      margin-top: 4px;
+      font-size: 26px;
+      font-weight: 800;
+    }
+
+    .bulk-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #f9fafb;
+      flex-wrap: wrap;
+    }
+
+    .bulk-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .bulk-actions-text {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .cleanup-options {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .cleanup-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 850px) {
+      .stats {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+      }
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1050px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 12px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f9fafb;
+      font-size: 13px;
+      color: #374151;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .topic-title {
+      font-weight: 700;
+      max-width: 340px;
+      word-break: break-word;
+    }
+
+    .topic-meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    .status {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-paused {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .status-processing {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .status-published {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-failed {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-cancelled {
+      background: #f3f4f6;
+      color: #6b7280;
+      text-decoration: line-through;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-width: 250px;
+    }
+
+    .actions .btn {
+      padding: 7px 9px;
+      font-size: 12px;
+    }
+
+    .empty-state {
+      padding: 36px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .loading {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(17, 24, 39, 0.65);
+      padding: 18px;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop.show {
+      display: block;
+    }
+
+    .modal {
+      width: min(900px, 100%);
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.28);
+    }
+
+    .modal-header,
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--border);
+      border-bottom: 0;
+      justify-content: flex-end;
+    }
+
+    .modal-body {
+      padding: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-group label {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    textarea.form-control {
+      min-height: 270px;
+      resize: vertical;
+      font-family: Consolas, Monaco, monospace;
+      line-height: 1.45;
+    }
+
+    .login-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    body.app-loading .scheduler-panel {
+      visibility: hidden;
+    }
+
+    @media (max-width: 850px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-group.full {
+        grid-column: auto;
+      }
+
+      .login-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body class="app-loading">
+
+  <main class="scheduler-panel">
+
+    <section id="loginView" class="login-card card">
+      <h1 id="loginProjectTitle" class="panel-title">Gestor de publicaciones</h1>
+      <p class="panel-subtitle">
+        Panel privado de administración
+      </p>
+
+      <div id="loginMessage" class="message"></div>
+
+      <p class="small-note">
+        Pulsa <strong>Entrar</strong>. El navegador te pedirá la clave en una ventana segura.
+        Se admiten Ñ, tildes, espacios y símbolos. La contraseña no se guarda: solo se guarda su huella SHA-256 en este navegador para mantener la sesión al actualizar. Se elimina al pulsar Cerrar sesión.
+      </p>
+
+      <div class="login-row">
+        <button id="loginButton" class="btn btn-primary" type="button">
+          Entrar
+        </button>
+      </div>
+    </section>
+
+
+    <section id="panelView" class="hidden">
+
+      <header class="panel-header">
+        <div>
+          <h1 id="panelProjectTitle" class="panel-title">Temas programados</h1>
+          <p class="panel-subtitle">
+            Consulta, edita, reprograma, publica o cancela temas.
+          </p>
+        </div>
+
+        <div class="header-actions">
+          <button id="viewForumButton" class="btn btn-light" type="button">
+            Ver foro
+          </button>
+
+          <button id="logoutButton" class="btn btn-dark" type="button">
+            Cerrar sesión
+          </button>
+        </div>
+      </header>
+
+      <div id="panelMessage" class="message"></div>
+
+      <section class="stats">
+        <div class="stat-card card">
+          <div class="stat-label">Pendientes</div>
+          <div id="countPending" class="stat-value">0</div>
+        </div>
+
+        <div class="stat-card card">
+          <div class="stat-label">Publicados</div>
+          <div id="countPublished" class="stat-value">0</div>
+        </div>
+
+        <div class="stat-card card">
+          <div class="stat-label">Cancelados</div>
+          <div id="countCancelled" class="stat-value">0</div>
+        </div>
+
+        <div class="stat-card card">
+          <div class="stat-label">Fallidos</div>
+          <div id="countFailed" class="stat-value">0</div>
+        </div>
+      </section>
+
+      <section class="toolbar card">
+        <input
+          id="searchInput"
+          class="form-control"
+          type="search"
+          placeholder="Buscar por título, autor o URL..."
+        >
+
+        <select id="statusFilter" class="form-control">
+          <option value="">Todos los estados</option>
+          <option value="pending">Pendientes</option>
+          <option value="paused">Pausados</option>
+          <option value="processing">Procesando</option>
+          <option value="published">Publicados</option>
+          <option value="failed">Fallidos</option>
+          <option value="cancelled">Cancelados</option>
+        </select>
+
+        <button id="refreshButton" class="btn btn-primary" type="button">
+          Actualizar
+        </button>
+
+        <select id="limitFilter" class="form-control">
+          <option value="20">20 registros</option>
+          <option value="50" selected>50 registros</option>
+          <option value="100">100 registros</option>
+          <option value="200">200 registros</option>
+        </select>
+      </section>
+
+      <section class="table-card card">
+
+        <div class="bulk-actions">
+          <div class="bulk-actions-left">
+            <span class="bulk-actions-text">
+              Limpieza del panel:
+            </span>
+
+            <div class="cleanup-options">
+              <label>
+                <input id="cleanPublished" type="checkbox" checked>
+                Publicados
+              </label>
+
+              <label>
+                <input id="cleanCancelled" type="checkbox">
+                Cancelados
+              </label>
+
+              <label>
+                <input id="cleanFailed" type="checkbox">
+                Fallidos
+              </label>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              id="deletePageButton"
+              class="btn btn-danger"
+              type="button"
+              title="Elimina solo los registros visibles en el panel según los filtros seleccionados. No borra temas del foro."
+            >
+              Delete page records
+            </button>
+
+            <button
+              id="clearHistoryButton"
+              class="btn btn-light"
+              type="button"
+              title="Elimina todo el historial finalizado del panel: registros publicados, cancelados y fallidos. Conserva pendientes, pausados y en proceso."
+            >
+              Clear history
+            </button>
+          </div>
+        </div>
+
+        <div id="loadingState" class="loading">
+          Cargando temas...
+        </div>
+
+        <div id="tableWrap" class="table-wrap hidden">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título y destino</th>
+                <th>Programado</th>
+                <th>Estado</th>
+                <th>Intentos</th>
+                <th>Publicado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody id="topicsBody"></tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="empty-state hidden">
+          No hay registros para mostrar.
+        </div>
+      </section>
+
+    </section>
+
+  </main>
+
+
+  <div id="editModalBackdrop" class="modal-backdrop">
+    <section class="modal">
+      <header class="modal-header">
+        <h2 id="editModalTitle">Editar tema</h2>
+
+        <button id="closeEditModalButton" class="btn btn-light" type="button"
+          onclick="closeEditModal(); return false;">
+          Cerrar
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <div id="editMessage" class="message"></div>
+
+        <form id="editForm" onsubmit="return false;">
+          <input id="editId" type="hidden">
+
+          <div class="form-grid">
+
+            <div class="form-group full">
+              <label for="editTitle">Título</label>
+              <input id="editTitle" class="form-control" type="text" required>
+            </div>
+
+            <div class="form-group full">
+              <label for="editContent">Contenido BBCode</label>
+              <textarea id="editContent" class="form-control" required></textarea>
+            </div>
+
+            <div class="form-group full">
+              <label for="editForumUrl">URL del foro destino</label>
+              <input id="editForumUrl" class="form-control" type="url" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editPublishAt">Fecha y hora</label>
+              <input id="editPublishAt" class="form-control" type="datetime-local" required>
+            </div>
+
+            <div class="form-group">
+              <label for="editAuthor">Cuenta publicadora</label>
+              <input id="editAuthor" class="form-control" type="text" required>
+            </div>
+
+            <div class="form-group full">
+              <label for="editReturnUrl">URL de retorno</label>
+              <input id="editReturnUrl" class="form-control" type="url">
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <footer class="modal-footer">
+        <button id="saveEditButton" class="btn btn-primary" type="button"
+          onclick="saveEdit(); return false;">
+          Guardar cambios
+        </button>
+      </footer>
+    </section>
+  </div>
+
+
+  <script>
+    window.setTimeout(function () {
+      document.body.classList.remove("app-loading");
+    }, 800);
+
+    /*
+     * CONFIGURACIÓN
+     * Cambia únicamente esta dirección si instalas el panel con otro Worker.
+     */
+    var CONFIG_KEY = "publication_manager_config_v1";
+    var INSTALLED_PROJECT_NAME = "";
+    var INSTALLED_WORKER_URL = "";
+    var savedConfig = {};
+
+    try {
+      savedConfig = JSON.parse(
+        localStorage.getItem(CONFIG_KEY) || "{}"
+      );
+    } catch (error) {
+      savedConfig = {};
+    }
+
+    function cleanWorkerUrl(value) {
+      return String(value || "")
+        .trim()
+        .replace(/\/+$/, "");
+    }
+
+    var installedWorkerChanged = false;
+    var installedWorkerUrl = cleanWorkerUrl(INSTALLED_WORKER_URL);
+
+    if (
+      installedWorkerUrl &&
+      installedWorkerUrl !== cleanWorkerUrl(savedConfig.workerUrl || "")
+    ) {
+      savedConfig.workerUrl = installedWorkerUrl;
+      savedConfig.projectName =
+        INSTALLED_PROJECT_NAME ||
+        savedConfig.projectName ||
+        "Gestor de publicaciones";
+      installedWorkerChanged = true;
+
+      localStorage.setItem(
+        CONFIG_KEY,
+        JSON.stringify(savedConfig)
+      );
+    }
+
+    var WORKER_URL = String(
+      savedConfig.workerUrl || ""
+    );
+
+    var PROJECT_NAME = String(
+      savedConfig.projectName || "Gestor de publicaciones"
+    );
+
+    var SESSION_HASH_KEY =
+      "publication_manager_admin_hash_v1";
+
+    if (installedWorkerChanged) {
+      localStorage.removeItem(SESSION_HASH_KEY);
+    }
+
+    var PANEL_SOURCE_KEY =
+      "publication_manager_panel_source_v1";
+
+    var state = {
+      topics: [],
+      adminKeyHash: localStorage.getItem(SESSION_HASH_KEY) || "",
+      autoRefreshTimer: null,
+      loadingTopics: false
+    };
+
+    var AUTO_REFRESH_MS = 15000;
+
+
+    function normalizeWorkerUrl(value) {
+      return String(value || "")
+        .trim()
+        .replace(/\/+$/, "");
+    }
+
+
+    function configureProject() {
+      var projectName = window.prompt(
+        "¿Qué nombre deseas poner al proyecto?",
+        PROJECT_NAME
+      );
+
+      if (projectName === null) {
+        return false;
+      }
+
+      projectName = String(projectName).trim();
+
+      if (!projectName) {
+        projectName = "Gestor de publicaciones";
+      }
+
+      var workerUrl = window.prompt(
+        "Pega la dirección creada para el servicio:",
+        WORKER_URL || "https://nombre-del-proyecto.workers.dev"
+      );
+
+      if (workerUrl === null) {
+        return false;
+      }
+
+      workerUrl = normalizeWorkerUrl(workerUrl);
+
+      if (
+        !/^https:\/\/[a-z0-9.-]+(?:\/.*)?$/i.test(workerUrl)
+      ) {
+        window.alert(
+          "La dirección no es válida. Debe comenzar por https://"
+        );
+        return false;
+      }
+
+      PROJECT_NAME = projectName;
+      WORKER_URL = workerUrl;
+
+      localStorage.setItem(
+        CONFIG_KEY,
+        JSON.stringify({
+          projectName: PROJECT_NAME,
+          workerUrl: WORKER_URL
+        })
+      );
+
+      applyProjectName();
+      return true;
+    }
+
+
+    function applyProjectName() {
+      document.title =
+        PROJECT_NAME + " - Administración";
+
+      var loginTitle = byId("loginProjectTitle");
+      var panelTitle = byId("panelProjectTitle");
+
+      if (loginTitle) {
+        loginTitle.textContent = PROJECT_NAME;
+      }
+
+      if (panelTitle) {
+        panelTitle.textContent = PROJECT_NAME;
+      }
+    }
+
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+
+    function apiUrl(path) {
+      return WORKER_URL.replace(/\/+$/, "") + path;
+    }
+
+
+    function showMessage(element, text, type) {
+      element.className = "message show " + (type || "info");
+      element.textContent = text;
+    }
+
+
+    function translateApiError(message) {
+      var text = String(message || "");
+
+      if (text === "Clave administrativa " + "no válida." || text === "Contraseña " + "no válida.") {
+        return "Contraseña no válida.";
+      }
+
+      if (/failed to fetch|networkerror|attempting to fetch resource|load failed/i.test(text)) {
+        return "Contraseña no válida.";
+      }
+
+      if (text === "Falta configurar el Secret " + "ADMIN_API_KEY.") {
+        return "Falta configurar el Secret ADMIN_API_KEY.";
+      }
+
+      return text;
+    }
+
+
+    function hideMessage(element) {
+      element.className = "message";
+      element.textContent = "";
+    }
+
+
+    async function hashAdminKey(value) {
+      var normalized = String(value).normalize("NFC");
+      var bytes = new TextEncoder().encode(normalized);
+
+      var digest = await crypto.subtle.digest(
+        "SHA-256",
+        bytes
+      );
+
+      return Array.from(
+        new Uint8Array(digest)
+      )
+        .map(function (byte) {
+          return byte.toString(16).padStart(2, "0");
+        })
+        .join("");
+    }
+
+    async function apiRequest(path, options) {
+      var config = options || {};
+      var headers = new Headers(config.headers || {});
+
+      headers.set(
+        "X-API-Key",
+        state.adminKeyHash
+      );
+
+      if (
+        config.body &&
+        !headers.has("Content-Type")
+      ) {
+        headers.set("Content-Type", "application/json");
+      }
+
+      var response = await fetch(apiUrl(path), {
+        method: config.method || "GET",
+        headers: headers,
+        body: config.body || undefined
+      });
+
+      var data;
+
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new Error(
+          "El Worker devolvió una respuesta no válida. HTTP " +
+          response.status
+        );
+      }
+
+      if (!response.ok || data.ok === false) {
+        throw new Error(
+          translateApiError(data.error) ||
+          ("Error HTTP " + response.status)
+        );
+      }
+
+      return data;
+    }
+
+
+    async function login() {
+      var loginMessage = byId("loginMessage");
+
+      if (!WORKER_URL && !configureProject()) {
+        return;
+      }
+      var button = byId("loginButton");
+
+      hideMessage(loginMessage);
+
+      var key = window.prompt(
+        "Introduce el valor exacto de la clave administrativa:"
+      );
+
+      if (key === null) {
+        return;
+      }
+
+      key = String(key);
+
+      if (key.length === 0) {
+        showMessage(
+          loginMessage,
+          "No has introducido ninguna clave.",
+          "error"
+        );
+        return;
+      }
+
+      state.adminKeyHash = await hashAdminKey(key);
+      button.disabled = true;
+      button.textContent = "Comprobando...";
+
+      try {
+        await apiRequest("/api/topics/list?limit=1");
+
+        localStorage.setItem(
+          SESSION_HASH_KEY,
+          state.adminKeyHash
+        );
+
+        byId("loginView").classList.add("hidden");
+        byId("panelView").classList.remove("hidden");
+
+        await loadTopics();
+        startAutoRefresh();
+
+      } catch (error) {
+        state.adminKeyHash = "";
+        localStorage.removeItem(SESSION_HASH_KEY);
+
+        showMessage(
+          loginMessage,
+          translateApiError(error.message),
+          "error"
+        );
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "Entrar";
+      }
+    }
+
+    function logout() {
+      state.adminKeyHash = "";
+      state.topics = [];
+
+      localStorage.removeItem(SESSION_HASH_KEY);
+
+      byId("panelView").classList.add("hidden");
+      byId("loginView").classList.remove("hidden");
+      closeEditModal();
+      stopAutoRefresh();
+    }
+
+
+    function startAutoRefresh() {
+      stopAutoRefresh();
+
+      state.autoRefreshTimer = window.setInterval(function () {
+        if (
+          !document.hidden &&
+          !byId("panelView").classList.contains("hidden")
+        ) {
+          loadTopics(true);
+        }
+      }, AUTO_REFRESH_MS);
+    }
+
+
+    function stopAutoRefresh() {
+      if (state.autoRefreshTimer) {
+        window.clearInterval(state.autoRefreshTimer);
+        state.autoRefreshTimer = null;
+      }
+    }
+
+
+    async function loadTopics(silent) {
+      if (state.loadingTopics) {
+        return;
+      }
+
+      state.loadingTopics = true;
+
+      var loadingState = byId("loadingState");
+      var tableWrap = byId("tableWrap");
+      var emptyState = byId("emptyState");
+      var panelMessage = byId("panelMessage");
+
+      if (!silent) {
+        hideMessage(panelMessage);
+      }
+
+      if (!silent) {
+        loadingState.classList.remove("hidden");
+        tableWrap.classList.add("hidden");
+        emptyState.classList.add("hidden");
+      }
+
+      var status = byId("statusFilter").value;
+      var limit = byId("limitFilter").value;
+
+      var query =
+        "/api/topics/list?limit=" +
+        encodeURIComponent(limit);
+
+      if (status) {
+        query +=
+          "&status=" +
+          encodeURIComponent(status);
+      }
+
+      try {
+        var data = await apiRequest(query);
+
+        state.topics = Array.isArray(data.topics)
+          ? data.topics
+          : [];
+
+        updateCounters();
+        renderTopics();
+
+      } catch (error) {
+        showMessage(
+          panelMessage,
+          error.message,
+          "error"
+        );
+
+        if (
+          /clave/i.test(error.message) ||
+          /401/.test(error.message)
+        ) {
+          logout();
+        }
+
+      } finally {
+        state.loadingTopics = false;
+        loadingState.classList.add("hidden");
+      }
+    }
+
+
+    function updateCounters() {
+      var counts = {
+        pending: 0,
+        published: 0,
+        cancelled: 0,
+        failed: 0
+      };
+
+      state.topics.forEach(function (topic) {
+        if (counts[topic.status] !== undefined) {
+          counts[topic.status] += 1;
+        }
+      });
+
+      byId("countPending").textContent = counts.pending;
+      byId("countPublished").textContent = counts.published;
+      byId("countCancelled").textContent = counts.cancelled;
+      byId("countFailed").textContent = counts.failed;
+    }
+
+
+    function renderTopics() {
+      var body = byId("topicsBody");
+      var tableWrap = byId("tableWrap");
+      var emptyState = byId("emptyState");
+      var search = String(
+        byId("searchInput").value || ""
+      ).trim().toLowerCase();
+
+      var topics = state.topics.filter(function (topic) {
+        if (!search) {
+          return true;
+        }
+
+        var haystack = [
+          topic.id,
+          topic.title,
+          topic.author,
+          topic.forum_url,
+          topic.status,
+          topic.published_url
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return haystack.indexOf(search) !== -1;
+      });
+
+      body.innerHTML = "";
+
+      if (!topics.length) {
+        tableWrap.classList.add("hidden");
+        emptyState.classList.remove("hidden");
+        return;
+      }
+
+      topics.forEach(function (topic) {
+        body.appendChild(
+          createTopicRow(topic)
+        );
+      });
+
+      emptyState.classList.add("hidden");
+      tableWrap.classList.remove("hidden");
+    }
+
+
+    function createTopicRow(topic) {
+      var tr = document.createElement("tr");
+
+      tr.innerHTML =
+        "<td>" +
+          escapeHtml(topic.id) +
+        "</td>" +
+
+        "<td>" +
+          '<div class="topic-title">' +
+            escapeHtml(topic.title || "(Sin título)") +
+          "</div>" +
+          '<div class="topic-meta">' +
+            escapeHtml(topic.forum_url || "") +
+          "</div>" +
+          '<div class="topic-meta">Autor: ' +
+            escapeHtml(topic.author || "") +
+          "</div>" +
+        "</td>" +
+
+        "<td>" +
+          formatDate(topic.publish_at) +
+        "</td>" +
+
+        "<td>" +
+          renderStatus(topic.status) +
+          (
+            topic.last_error
+              ? '<div class="topic-meta">' +
+                  escapeHtml(topic.last_error) +
+                "</div>"
+              : ""
+          ) +
+        "</td>" +
+
+        "<td>" +
+          escapeHtml(topic.attempts || 0) +
+        "</td>" +
+
+        "<td>" +
+          (
+            topic.published_url
+              ? formatDate(topic.published_at)
+              : "-"
+          ) +
+        "</td>" +
+
+        '<td><div class="actions">' +
+          renderActions(topic) +
+        "</div></td>";
+
+      bindRowActions(tr, topic);
+
+      return tr;
+    }
+
+
+    function renderStatus(status) {
+      var value = String(status || "unknown");
+
+      return (
+        '<span class="status status-' +
+        escapeAttribute(value) +
+        '">' +
+        escapeHtml(translateStatus(value)) +
+        "</span>"
+      );
+    }
+
+
+    function translateStatus(status) {
+      var labels = {
+        pending: "Pendiente",
+        paused: "Pausado",
+        processing: "Procesando",
+        published: "Publicado",
+        failed: "Fallido",
+        cancelled: "Cancelado"
+      };
+
+      return labels[status] || status;
+    }
+
+
+    function renderActions(topic) {
+      var editable =
+        topic.status === "pending" ||
+        topic.status === "paused";
+
+      var html = "";
+
+      if (editable) {
+        html +=
+          '<button class="btn btn-light js-edit" type="button">Editar</button>';
+
+        html +=
+          '<button class="btn btn-warning js-publish-now" type="button">Publicar ahora</button>';
+
+        if (topic.status === "pending") {
+          html +=
+            '<button class="btn btn-light js-pause" type="button">Pausar</button>';
+        }
+
+        if (topic.status === "paused") {
+          html +=
+            '<button class="btn btn-primary js-resume" type="button">Reanudar</button>';
+        }
+
+        html +=
+          '<button class="btn btn-danger js-cancel" type="button">Cancelar</button>';
+      }
+
+      if (topic.published_url) {
+        html +=
+          '<a class="btn btn-primary" href="' +
+          escapeAttribute(topic.published_url) +
+          '" target="_blank" rel="noopener">Ver tema</a>';
+      }
+
+      if (
+        topic.status === "published" ||
+        topic.status === "cancelled" ||
+        topic.status === "failed"
+      ) {
+        html +=
+          '<button class="btn btn-danger js-delete-record" type="button">Eliminar del panel</button>';
+      }
+
+      if (!html) {
+        html =
+          '<span class="topic-meta">Sin acciones disponibles</span>';
+      }
+
+      return html;
+    }
+
+
+    function bindRowActions(tr, topic) {
+      var editButton = tr.querySelector(".js-edit");
+      var publishButton = tr.querySelector(".js-publish-now");
+      var cancelButton = tr.querySelector(".js-cancel");
+      var pauseButton = tr.querySelector(".js-pause");
+      var resumeButton = tr.querySelector(".js-resume");
+      var deleteButton = tr.querySelector(".js-delete-record");
+
+      if (editButton) {
+        editButton.addEventListener("click", function () {
+          openEditModal(topic);
+        });
+      }
+
+      if (publishButton) {
+        publishButton.addEventListener("click", function () {
+          publishNow(topic, publishButton);
+        });
+      }
+
+      if (cancelButton) {
+        cancelButton.addEventListener("click", function () {
+          cancelTopic(topic);
+        });
+      }
+
+      if (pauseButton) {
+        pauseButton.addEventListener("click", function () {
+          pauseTopic(topic);
+        });
+      }
+
+      if (resumeButton) {
+        resumeButton.addEventListener("click", function () {
+          resumeTopic(topic);
+        });
+      }
+
+      if (deleteButton) {
+        deleteButton.addEventListener("click", function () {
+          deletePublishedRecord(topic);
+        });
+      }
+    }
+
+
+    async function publishNow(topic, button) {
+      if (
+        !confirm(
+          '¿Publicar ahora el tema "' +
+          topic.title +
+          '"?'
+        )
+      ) {
+        return;
+      }
+
+      var panelMessage = byId("panelMessage");
+      var originalText = button
+        ? button.textContent
+        : "Publicar ahora";
+
+      hideMessage(panelMessage);
+
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Publicando...";
+      }
+
+      showMessage(
+        panelMessage,
+        "Publicando el tema. Espera unos segundos...",
+        "info"
+      );
+
+      try {
+        var data = await apiRequest(
+          "/api/topics/publish-now",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              id: topic.id
+            })
+          }
+        );
+
+        showMessage(
+          panelMessage,
+          data.message || "Tema publicado correctamente.",
+          "success"
+        );
+
+        await loadTopics();
+
+      } catch (error) {
+        showMessage(
+          panelMessage,
+          error.message,
+          "error"
+        );
+
+        await loadTopics();
+
+      } finally {
+        if (button && document.body.contains(button)) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    }
+
+    async function pauseTopic(topic) {
+      if (
+        !confirm(
+          '¿Pausar el tema "' +
+          topic.title +
+          '"?'
+        )
+      ) {
+        return;
+      }
+
+      await runAction(
+        "/api/topics/pause",
+        { id: topic.id },
+        "Tema pausado correctamente."
+      );
+    }
+
+
+    async function resumeTopic(topic) {
+      if (
+        !confirm(
+          '¿Reanudar el tema "' +
+          topic.title +
+          '"?'
+        )
+      ) {
+        return;
+      }
+
+      await runAction(
+        "/api/topics/resume",
+        { id: topic.id },
+        "Tema reanudado correctamente."
+      );
+    }
+
+
+    async function cancelTopic(topic) {
+      if (
+        !confirm(
+          '¿Cancelar el tema "' +
+          topic.title +
+          '"?'
+        )
+      ) {
+        return;
+      }
+
+      await runAction(
+        "/api/topics/cancel",
+        { id: topic.id },
+        "Tema cancelado correctamente."
+      );
+    }
+
+
+    async function deletePublishedRecord(topic) {
+      if (
+        !confirm(
+          '¿Eliminar del panel el registro "' +
+          topic.title +
+          '"? ' +
+          "Solo se eliminará el registro del panel. " +
+          "El tema del foro, si existe, NO se eliminará."
+        )
+      ) {
+        return;
+      }
+
+      await runAction(
+        "/api/topics/delete",
+        { id: topic.id },
+        "Registro eliminado del panel."
+      );
+    }
+
+
+    function selectedCleanupStatuses() {
+      var statuses = [];
+
+      if (byId("cleanPublished").checked) {
+        statuses.push("published");
+      }
+
+      if (byId("cleanCancelled").checked) {
+        statuses.push("cancelled");
+      }
+
+      if (byId("cleanFailed").checked) {
+        statuses.push("failed");
+      }
+
+      return statuses;
+    }
+
+
+    async function deletePublishedFromPage() {
+      var statuses = selectedCleanupStatuses();
+
+      if (!statuses.length) {
+        showMessage(
+          byId("panelMessage"),
+          "Selecciona al menos un estado para limpiar.",
+          "info"
+        );
+        return;
+      }
+
+      var visibleIds = state.topics
+        .filter(function (topic) {
+          return statuses.indexOf(topic.status) !== -1;
+        })
+        .map(function (topic) {
+          return topic.id;
+        });
+
+      if (!visibleIds.length) {
+        showMessage(
+          byId("panelMessage"),
+          "No hay registros de esos estados en esta página.",
+          "info"
+        );
+        return;
+      }
+
+      if (
+        !confirm(
+          "¿Eliminar del panel " +
+          visibleIds.length +
+          " registros de esta página?" +
+          "No se eliminará ningún tema del foro."
+        )
+      ) {
+        return;
+      }
+
+      await runAction(
+        "/api/topics/delete",
+        { ids: visibleIds },
+        "Registros eliminados del panel."
+      );
+    }
+
+
+    async function clearHistory() {
+      var confirmation = window.prompt(
+        "Esto eliminará todos los registros publicados, cancelados y fallidos." +
+        "Los pendientes, pausados y en proceso se conservarán." +
+        "Escribe ELIMINAR para continuar:"
+      );
+
+      if (confirmation !== "ELIMINAR") {
+        return;
+      }
+
+      await runAction(
+        "/api/topics/delete",
+        { all_terminal: true },
+        "Historial limpiado correctamente."
+      );
+    }
+
+    async function runAction(path, payload, successText) {
+      var panelMessage = byId("panelMessage");
+
+      hideMessage(panelMessage);
+
+      try {
+        var data = await apiRequest(path, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        showMessage(
+          panelMessage,
+          data.message || successText,
+          "success"
+        );
+
+        await loadTopics();
+
+      } catch (error) {
+        showMessage(
+          panelMessage,
+          error.message,
+          "error"
+        );
+      }
+    }
+
+
+    function openEditModal(topic) {
+      hideMessage(byId("editMessage"));
+
+      byId("editId").value = topic.id;
+      byId("editTitle").value = topic.title || "";
+      byId("editContent").value = topic.content || "";
+      byId("editForumUrl").value = topic.forum_url || "";
+      byId("editPublishAt").value =
+        normalizeDateTimeLocal(topic.publish_at);
+      byId("editAuthor").value = topic.author || "";
+      byId("editReturnUrl").value = topic.return_url || "";
+
+      byId("editModalTitle").textContent =
+        "Editar tema #" + topic.id;
+
+      byId("editModalBackdrop").classList.add("show");
+    }
+
+
+    function closeEditModal() {
+      byId("editModalBackdrop").classList.remove("show");
+      hideMessage(byId("editMessage"));
+      byId("editForm").reset();
+      byId("editId").value = "";
+    }
+
+
+    async function saveEdit() {
+      var editMessage = byId("editMessage");
+      var button = byId("saveEditButton");
+
+      try {
+        hideMessage(editMessage);
+
+      var payload = {
+        id: Number(byId("editId").value),
+        title: String(byId("editTitle").value || "").trim(),
+        content: String(byId("editContent").value || ""),
+        forum_url: String(byId("editForumUrl").value || "").trim(),
+        publish_at: String(byId("editPublishAt").value || "").trim(),
+        author: String(byId("editAuthor").value || "").trim(),
+        return_url: String(byId("editReturnUrl").value || "").trim()
+      };
+
+      if (
+        !payload.title ||
+        !payload.content ||
+        !payload.forum_url ||
+        !payload.publish_at ||
+        !payload.author
+      ) {
+        showMessage(
+          editMessage,
+          "Completa todos los campos obligatorios.",
+          "error"
+        );
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Guardando...";
+
+      try {
+        var data = await apiRequest(
+          "/api/topics/edit",
+          {
+            method: "POST",
+            body: JSON.stringify(payload)
+          }
+        );
+
+        showMessage(
+          editMessage,
+          data.message || "Tema actualizado.",
+          "success"
+        );
+
+        await loadTopics();
+
+        setTimeout(function () {
+          closeEditModal();
+        }, 500);
+
+      } catch (error) {
+        showMessage(
+          editMessage,
+          error.message,
+          "error"
+        );
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "Guardar cambios";
+      }
+
+      } catch (unexpectedError) {
+        button.disabled = false;
+        button.textContent = "Guardar cambios";
+
+        showMessage(
+          editMessage,
+          "Error inesperado al guardar: " +
+          (unexpectedError && unexpectedError.message
+            ? unexpectedError.message
+            : String(unexpectedError)),
+          "error"
+        );
+      }
+    }
+
+
+    function formatDate(value) {
+      if (!value) {
+        return "-";
+      }
+
+      var normalized = String(value).replace(" ", "T");
+      var date = new Date(normalized);
+
+      if (isNaN(date.getTime())) {
+        return escapeHtml(value);
+      }
+
+      return date.toLocaleString("es-ES", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+
+    function normalizeDateTimeLocal(value) {
+      if (!value) {
+        return "";
+      }
+
+      return String(value)
+        .replace(" ", "T")
+        .slice(0, 16);
+    }
+
+
+    function getQueryParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+
+    function getPanelSourceUrl() {
+      var returnParam = getQueryParam("return") || getQueryParam("volver");
+
+      if (returnParam) {
+        sessionStorage.setItem(PANEL_SOURCE_KEY, returnParam);
+        return returnParam;
+      }
+
+      return sessionStorage.getItem(PANEL_SOURCE_KEY) || "/";
+    }
+
+
+    function viewForum() {
+      window.location.href = getPanelSourceUrl();
+    }
+
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+
+    function escapeAttribute(value) {
+      return escapeHtml(value);
+    }
+
+
+    byId("loginButton").addEventListener("click", login);
+
+
+    byId("viewForumButton").addEventListener("click", viewForum);
+    byId("logoutButton").addEventListener("click", logout);
+    byId("refreshButton").addEventListener("click", loadTopics);
+    byId("deletePageButton").addEventListener(
+      "click",
+      deletePublishedFromPage
+    );
+
+    byId("clearHistoryButton").addEventListener(
+      "click",
+      clearHistory
+    );
+    byId("statusFilter").addEventListener("change", loadTopics);
+    byId("limitFilter").addEventListener("change", loadTopics);
+    byId("searchInput").addEventListener("input", renderTopics);
+
+    byId("editModalBackdrop").addEventListener("click", function (event) {
+      if (event.target === byId("editModalBackdrop")) {
+        closeEditModal();
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (
+        event.key === "Escape" &&
+        byId("editModalBackdrop").classList.contains("show")
+      ) {
+        closeEditModal();
+      }
+    });
+
+
+    async function restoreSession() {
+      applyProjectName();
+
+      if (!WORKER_URL) {
+        configureProject();
+      }
+
+      if (!state.adminKeyHash || !WORKER_URL) {
+        byId("panelView").classList.add("hidden");
+        byId("loginView").classList.remove("hidden");
+        document.body.classList.remove("app-loading");
+        return;
+      }
+
+      try {
+        await apiRequest("/api/topics/list?limit=1");
+
+        byId("loginView").classList.add("hidden");
+        byId("panelView").classList.remove("hidden");
+
+        await loadTopics();
+        startAutoRefresh();
+
+      } catch (error) {
+        state.adminKeyHash = "";
+        localStorage.removeItem(SESSION_HASH_KEY);
+        stopAutoRefresh();
+
+        byId("panelView").classList.add("hidden");
+        byId("loginView").classList.remove("hidden");
+
+        showMessage(
+          byId("loginMessage"),
+          "La sesión ha caducado. Introduce de nuevo la clave.",
+          "info"
+        );
+
+      } finally {
+        document.body.classList.remove("app-loading");
+      }
+    }
+
+
+    restoreSession();
+
+  </script>
+
+</body>
+</html>

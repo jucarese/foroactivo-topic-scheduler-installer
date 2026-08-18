@@ -1,0 +1,26 @@
+Cambios v116 limpio
+====================
+
+Objetivo
+--------
+Añadir al formulario de programación una opción para elegir cómo se muestra la hora de publicación: formato de 24 horas o formato de 12 horas AM/PM.
+
+Cambios realizados
+------------------
+1. Se añadió el selector "Formato horario" en la sección "Fecha y hora" del formulario de programación.
+2. El selector permite elegir entre:
+   - 24 horas
+   - 12 horas AM/PM
+3. El cambio es solo visual para el usuario:
+   - En formato 24 horas se muestran horas como 00, 13, 22.
+   - En formato 12 horas se muestran horas como 12 AM, 01 PM, 10 PM.
+4. Internamente se conserva siempre el valor real de la hora en formato 00-23 para no modificar la lógica del Worker, del cron ni del backend.
+5. La preferencia elegida se guarda en el navegador junto con la configuración del formulario.
+6. Se añadieron las traducciones del nuevo selector en todos los idiomas del instalador:
+   ES, EN, PT, IT, FR, DE, RO y RU.
+7. Se ajustó la cuadrícula de fecha y hora para mostrar fecha, hora, minutos y formato horario sin romper el diseño responsive.
+
+Compatibilidad
+--------------
+No se ha modificado la lógica de instalación, despliegue, publicación ni mantenimiento.
+El Worker sigue recibiendo fecha y hora en el mismo formato interno que antes.

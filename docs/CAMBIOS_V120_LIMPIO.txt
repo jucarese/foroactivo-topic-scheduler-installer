@@ -1,0 +1,12 @@
+CAMBIOS V120 LIMPIO
+===================
+
+1. Se reconstruye una copia limpia desde V119.
+
+2. Se refuerza la vinculacion con la cuenta Cloudflare correcta:
+   - Si la instalacion tiene account_id guardado, se escribe tambien en wrangler.jsonc.
+   - Antes de leer o modificar D1 en mantenimiento, se compara la sesion activa de Wrangler con la cuenta vinculada.
+   - Si Wrangler esta autenticado en otra cuenta, se fuerza una nueva autorizacion antes de tocar la base D1.
+   - Si tras autorizar sigue sin coincidir, se muestra un error explicito con cuenta activa, cuenta esperada, Worker y D1.
+
+3. Se mantiene la logica existente de Worker, D1, secretos, formularios y panel.

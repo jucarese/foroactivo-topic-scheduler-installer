@@ -1,0 +1,49 @@
+CAMBIOS V112 LIMPIO
+===================
+
+Objetivo
+--------
+Crear una reconstruccion limpia desde la base v111, sin aplicar parches sobre los
+archivos de salida anteriores y evitando que Windows traduzca botones del
+instalador segun el idioma del sistema operativo.
+
+Cambios realizados
+------------------
+1. Se creo una nueva carpeta de trabajo:
+   work\rebuild_clean_v112_from_v111_clean\gestor-publicaciones-v1
+
+2. Se sustituyeron los MessageBox estandar de Windows por dialogos propios del
+   instalador en scripts\instalador-gui.ps1.
+
+3. Los botones de dialogo ahora salen segun el idioma elegido en el instalador:
+   ES: Aceptar, Si, No
+   EN: OK, Yes, No
+   PT: OK, Sim, Nao
+   IT: OK, Si, No
+   RU: OK, Da, Net
+   FR: OK, Oui, Non
+   DE: OK, Ja, Nein
+   RO: OK, Da, Nu
+
+4. Se tradujo la confirmacion de nueva instalacion que antes estaba fija en
+   espanol.
+
+5. Se tradujo la ventana propia para reservar el subdominio workers.dev.
+
+6. Se tradujeron los textos de ayuda inferiores y sus tooltips para que no
+   aparezcan inicialmente en espanol cuando se instala en otro idioma.
+
+7. Se quito la version visible antigua del encabezado del instalador.
+
+8. Se creo un lanzador nuevo Program_v112.cs con dialogo de error propio y boton
+   OK, evitando el MessageBox estandar si el paquete no pudiera arrancar.
+
+9. Se creo el script build_clean_v112.ps1 apuntando solo a esta carpeta limpia y
+   al lanzador nuevo.
+
+Notas
+-----
+Los dialogos externos que pertenecen a Windows, Cloudflare, Wrangler, el navegador
+o el selector nativo de archivos pueden seguir usando el idioma del sistema o del
+servicio externo. Los dialogos propios del instalador quedan controlados por el
+idioma seleccionado.

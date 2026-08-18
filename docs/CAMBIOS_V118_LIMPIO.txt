@@ -1,0 +1,37 @@
+Cambios v118 limpio
+====================
+
+Objetivo
+--------
+Aplicar a todos los formularios generados la selección de hora en formato 12/24 horas y mostrar la fecha en el orden correcto según el idioma del formulario.
+
+Cambios realizados
+------------------
+1. El formulario incluye un selector visible de formato horario:
+   - 24 horas
+   - 12 horas AM/PM
+2. El selector de formato horario ya no queda bloqueado con el resto de campos.
+3. La hora sigue enviándose internamente en formato 00-23 para no modificar la lógica del Worker ni del cron.
+4. El campo de fecha deja de depender del formato automático del navegador.
+5. Cada idioma recibe una máscara de fecha recomendada por defecto:
+   - ES: DD/MM/YYYY
+   - EN: MM/DD/YYYY
+   - PT: DD/MM/YYYY
+   - IT: DD/MM/YYYY
+   - FR: DD/MM/YYYY
+   - DE: DD.MM.YYYY
+   - RO: DD.MM.YYYY
+   - RU: DD.MM.YYYY
+6. Se añadió un selector de formato de fecha dentro del formulario para que el usuario pueda elegir:
+   - DD/MM/YYYY
+   - MM/DD/YYYY
+   - YYYY-MM-DD
+   - DD.MM.YYYY
+7. Antes de enviar la programación, el formulario convierte la fecha escrita por el usuario a YYYY-MM-DD.
+8. Se conserva compatibilidad con fechas pegadas en formato YYYY-MM-DD.
+9. Se añadieron mensajes de ayuda de formato de fecha en todos los idiomas.
+
+Compatibilidad
+--------------
+No se ha modificado la API, el Worker, D1, cron, publicación ni mantenimiento.
+El cambio afecta solo a la visualización y validación del formulario HTML.

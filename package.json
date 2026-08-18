@@ -1,0 +1,16 @@
+{
+  "name": "gestor-publicaciones-foroactivo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install:v1": "node scripts/asistente.mjs",
+    "deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply DB --remote",
+    "gestor": "node scripts/gestor.mjs",
+    "asistente": "node scripts/asistente.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,0 +1,31 @@
+CAMBIOS V113 LIMPIO
+===================
+
+Objetivo
+--------
+Mantener los dialogos propios del instalador sin depender del idioma de Windows,
+pero evitando que el boton neutro aparezca como "OK" en todos los idiomas.
+
+Cambios realizados
+------------------
+1. Se creo una nueva carpeta limpia basada en v112:
+   work\rebuild_clean_v113_from_v112_clean\gestor-publicaciones-v1
+
+2. Se actualizo la tabla Get-DialogButtonText para que el boton neutro se
+   muestre en cada idioma:
+   ES: Aceptar
+   EN: OK
+   PT: Aceitar
+   IT: Conferma
+   RU: OK en cirilico
+   FR: Valider
+   DE: Bestatigen
+   RO: Confirma
+
+3. Los botones de confirmacion Yes/No siguen localizados por idioma.
+
+Notas
+-----
+Los botones pertenecientes a ventanas externas de Windows, Cloudflare, Wrangler o
+el navegador pueden seguir usando el idioma propio del sistema externo. Los
+dialogos propios del instalador quedan controlados por el idioma seleccionado.

@@ -1,0 +1,7 @@
+INSTALADOR GRÁFICO v1.5
+
+- Detecta node, npm y npx mediante las rutas reales de Windows.
+- Si Node.js no existe, instala automáticamente Node.js LTS con winget.
+- Elimina las rutas fijas que causaban MODULE_NOT_FOUND.
+- Mantiene la clave administrativa visible con opción para ocultarla.
+- Confirma automáticamente las migraciones D1.
