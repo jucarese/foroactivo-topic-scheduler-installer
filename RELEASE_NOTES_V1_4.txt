@@ -1,6 +1,0 @@
-INSTALADOR GRÁFICO v1.4
-
-- Clave administrativa visible durante la escritura.
-- Casilla opcional para ocultarla.
-- Confirmación automática de las migraciones D1.
-- Instalación sin interacción con consola.

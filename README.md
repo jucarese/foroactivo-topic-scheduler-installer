@@ -1,191 +1,168 @@
-# Gestor de publicaciones para Foroactivo — v1.0
+# Foroactivo Topic Scheduler Installer
 
-Esta versión está preparada para pruebas.
+This repository contains the source code for a Windows installer, a Cloudflare Worker backend, D1 migrations, and the HTML files used to schedule and manage automatic topic publication on Foroactivo / Forumotion-family forums.
 
-## Instalación rápida
+The repository is prepared for technical review. It does not include real forum credentials, Cloudflare tokens, Wrangler sessions, generated installer runtimes, logs, D1 exports, or user-specific installation data.
 
-Requisitos:
-- Una cuenta gratuita de Cloudflare.
-- Node.js 20 o superior.
+## What The Project Does
 
-Pasos:
+The system lets a forum administrator:
 
-1. Descomprime esta carpeta.
-2. Abre una terminal dentro de la carpeta.
-3. Ejecuta:
+- configure one or more target forums;
+- configure one main publishing account and additional publishing accounts;
+- create a Cloudflare Worker;
+- create or reuse a Cloudflare D1 database;
+- store private forum credentials as Cloudflare Worker Secrets;
+- publish scheduled topics through a Worker cron;
+- manage scheduled, published, cancelled, failed, paused, and processing topics from a private control panel;
+- generate localized HTML files for the scheduling form, control panel, and installation instructions.
 
-   npm install
-   npm run install:v1
+## Main Components
 
-4. El instalador pedirá:
-   - nombre técnico del proyecto;
-   - zona horaria;
-   - cuenta publicadora;
-   - contraseña;
-   - clave administrativa.
+- `scripts/instalador-gui.ps1`
+  Windows Forms installer written in PowerShell. It drives the visual installation, language selection, Cloudflare login, Worker deployment, D1 setup, secrets, maintenance actions, backups, and final file generation.
 
-5. Cloudflare abrirá una sola página para autorizar la instalación.
-6. El proceso crea automáticamente:
-   - el Worker;
-   - la base D1;
-   - la tabla;
-   - el cron de cada minuto;
-   - las variables;
-   - los secretos.
+- `installer-builder/Program.cs`
+  Small Windows launcher used to package the project source into a self-extracting EXE. It extracts the payload into a temporary runtime folder, starts the PowerShell GUI, waits for it to close, and then cleans the runtime folder.
 
-7. Copia `panel/panel-control.html` en una página HTML de Foroactivo.
-8. Al abrirla por primera vez, indica:
-   - el nombre visible que quieras dar al proyecto;
-   - la dirección `https://...workers.dev` creada durante la instalación.
+- `build-installer.ps1`
+  Helper script used to build the Windows EXE from the current source tree.
 
-## Importante
+- `src/index.js`
+  Cloudflare Worker backend. It exposes the scheduling API, panel API, public configuration endpoint, cron handler, forum login/posting flow, admin authentication, and D1 operations.
 
-- El nombre visible del panel puede ser cualquiera.
-- El nombre técnico del Worker también puede cambiarse durante la instalación.
-- La clave admite Ñ, tildes y símbolos.
-- Eliminar registros del panel no elimina temas reales del foro.
-- Las credenciales privadas se guardan como secretos de Cloudflare.
+- `migrations/`
+  D1 database schema migrations.
 
-## Archivos principales
+- `panel/formulario-programacion.html`
+  Scheduling form template copied into a Foroactivo HTML page.
 
-- `src/index.js`: motor del sistema.
-- `panel/panel-control.html`: página de control.
-- `migrations/0001_initial.sql`: estructura de la base de datos.
-- `wrangler.jsonc`: configuración automática.
-- `scripts/instalar.mjs`: instalador guiado.
+- `panel/panel-control.html`
+  Private control panel template copied into a Foroactivo HTML page.
 
+- `wrangler.jsonc`
+  Base Wrangler configuration. The installer updates runtime values such as Worker name, D1 database name, D1 `database_id`, and time zone during installation.
 
-## Centro de mantenimiento
+- `SECURITY_REVIEW.md`
+  Security notes for reviewers, including how secrets are handled.
 
-Ejecuta:
+- `docs/INSTALLER_INTERNAL_STRUCTURE.md`
+  Detailed installer architecture and internal flow.
 
-```text
-npm run gestor
-```
+## Installer Architecture
 
-Opciones disponibles:
+The Windows EXE is not the whole application by itself. It is a launcher that embeds this project as a ZIP payload.
 
-- instalar el proyecto;
-- cambiar la clave del panel;
-- cambiar la cuenta publicadora;
-- cambiar únicamente la contraseña de la cuenta publicadora;
-- cambiar la zona horaria;
-- reparar la instalación.
+At runtime:
 
-Las nuevas credenciales se guardan como secretos de Cloudflare y sustituyen a las anteriores.
+1. The EXE extracts the embedded payload into `.foroactivo_installer_runtime`.
+2. It starts `scripts/instalador-gui.ps1` with PowerShell.
+3. The PowerShell GUI collects project data, forum data, accounts, language, time zone, and maintenance actions.
+4. The installer uses Node.js, npm/npx, Wrangler, and Cloudflare to deploy or update the Worker.
+5. D1 migrations are applied.
+6. Secrets are written to Cloudflare Worker Secrets.
+7. Localized final files are generated in the selected installation language.
+8. The runtime folder is deleted after the installer closes.
 
+See [Installer Internal Structure](docs/INSTALLER_INTERNAL_STRUCTURE.md) for the full internal layout.
 
-## Varias cuentas publicadoras
+## Installation Flow
 
-La cuenta creada durante la instalación es la cuenta principal.
+The intended end-user flow is:
 
-Desde:
+1. Run the installer EXE.
+2. Select the installation language.
+3. Enter the project name and time zone.
+4. Enter the admin panel key.
+5. Enter the main publishing account.
+6. Add one or more forums.
+7. Add optional extra publishing accounts.
+8. Start installation.
+9. Authorize Cloudflare when Wrangler asks.
+10. Copy the generated HTML files into Foroactivo HTML pages.
 
-```text
-npm run gestor
-```
+The generated final folder contains only the files needed for that selected language:
 
-puedes elegir:
+- scheduling form HTML;
+- control panel HTML;
+- installation instructions TXT;
+- installer log TXT;
+- installation metadata JSON used for future maintenance.
 
-- **Cambiar la cuenta publicadora principal**: sustituye la actual.
-- **Añadir una nueva cuenta publicadora**: conserva la principal y añade otra.
-- **Actualizar una cuenta adicional**: modifica las credenciales de una cuenta añadida.
+## Maintenance Features
 
-Cada cuenta adicional recibe un identificador, por ejemplo:
+The installer can also be used after a first installation to:
 
-```text
-NOTICIAS
-EVENTOS
-STAFF_2
-```
+- update the admin panel key;
+- update the main publishing account;
+- add publishing accounts;
+- disable/remove publishing accounts from configuration;
+- add forums;
+- disable/remove forums from configuration;
+- refresh final HTML files;
+- create backups of D1 data;
+- update public configuration stored in D1.
 
-Ese identificador es el que debe indicarse en el campo **Cuenta publicadora** de la programación.
+Maintenance is intentionally handled by the installer because many administrators are not expected to work directly inside Cloudflare.
 
-La cuenta principal puede seguir seleccionándose escribiendo su nombre de usuario o `default`.
+## Secrets And Credentials
 
+Private credentials are not stored in this repository.
 
-## Configuración automática del formulario
+During installation, the following values are stored as Cloudflare Worker Secrets:
 
-Los foros y las cuentas publicadoras se guardan en D1 mediante el instalador.
+- `ADMIN_API_KEY`
+- `FOROACTIVO_USERNAME`
+- `FOROACTIVO_PASSWORD`
+- `FOROACTIVO_USERNAME_<ACCOUNT_KEY>`
+- `FOROACTIVO_PASSWORD_<ACCOUNT_KEY>`
 
-El formulario consulta:
+The public form never receives passwords. It only reads public configuration through:
 
 ```text
 GET /api/public-config
 ```
 
-La respuesta solo contiene:
-- nombres visibles de cuentas;
-- identificadores internos;
-- nombres y URLs de foros.
+That response contains visible forum/account labels and internal identifiers only.
 
-Nunca contiene contraseñas.
+## Build The Installer
 
-Para reducir consumo:
-- el Worker permite caché durante 5 minutos;
-- el formulario guarda la lista en el navegador durante 24 horas;
-- solo vuelve a consultar al caducar la caché o al pulsar **Refresh lists**.
+On Windows:
 
-
-## Instalador visual
-
-### Windows
-
-Haz doble clic en:
-
-```text
-ABRIR_INSTALADOR.bat
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\build-installer.ps1
 ```
 
-La primera vez instalará automáticamente las dependencias y abrirá el asistente en el navegador.
-
-### macOS y Linux
-
-Ejecuta:
+Generated files are written to:
 
 ```text
-sh abrir-instalador.sh
+dist/
 ```
 
-El asistente permite:
-- introducir el nombre del proyecto;
-- elegir la zona horaria;
-- crear la clave del panel;
-- añadir la cuenta principal;
-- añadir varios foros;
-- añadir varias cuentas publicadoras;
-- revisar toda la configuración antes de instalar.
+`dist/` is intentionally ignored by Git because EXE and ZIP files are build artifacts.
 
-No cierres la ventana de comandos mientras el asistente esté funcionando.
+## Review Notes
 
+Recommended review focus:
 
-## Instalación gráfica en Windows
+- PowerShell installer flow in `scripts/instalador-gui.ps1`;
+- launcher extraction and cleanup in `installer-builder/Program.cs`;
+- Worker API authorization in `src/index.js`;
+- D1 migration schema in `migrations/`;
+- Cloudflare Secret handling;
+- generated HTML localization and runtime configuration;
+- maintenance flows that update D1 and secrets without reinstalling the whole project.
 
-Haz doble clic en:
+## Repository Hygiene
 
-```text
-INSTALAR_SIN_CONSOLA.bat
-```
+The `.gitignore` excludes:
 
-Se abrirá una ventana gráfica, sin consola visible.
+- generated EXE/ZIP/MSI files;
+- installer runtime folders;
+- `node_modules/`;
+- `.wrangler/`;
+- `.env*`;
+- logs;
+- temporary metadata folders.
 
-Desde ella puedes configurar:
-- nombre del proyecto;
-- zona horaria;
-- clave del panel;
-- cuenta principal;
-- varios foros;
-- varias cuentas adicionales;
-- progreso de la instalación.
-
-Cloudflare puede abrir el navegador una sola vez para autorizar la cuenta.
-
-Requisito: Node.js debe estar instalado.
-
-
-## Cambios del instalador v1.4
-
-- La clave administrativa del panel se muestra mientras se escribe.
-- Se puede ocultar marcando **Ocultar clave**.
-- La advertencia de migración de D1 se confirma automáticamente.
-- El usuario ya no tiene que responder `y` durante la instalación.
+This keeps the repository suitable for source review without exposing local installation artifacts.
